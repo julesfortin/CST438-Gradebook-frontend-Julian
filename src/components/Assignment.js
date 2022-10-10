@@ -1,3 +1,5 @@
+import AddAssignment from '../AddAssignment.js';
+
 import React from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -21,6 +23,39 @@ class Assignment extends React.Component {
    componentDidMount() {
     this.fetchAssignments();
   }
+
+  newAssignment = (assignment) => {
+    const token = Cookies.get('XSRF-TOKEN');
+    fetch(`${SERVER_URL}/assignment`, 
+      {  
+        method: 'POST', 
+        headers: 
+        { 
+          'X-XSRF-TOKEN': token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(assignment)
+      } )
+    .then(res => {
+        if (res.ok) {
+          toast.success("Assignment successfully added", {
+              position: toast.POSITION.BOTTOM_LEFT
+          });
+          this.fetchAssignments();
+        } else {
+          toast.error("Error new assignment failed.", {
+              position: toast.POSITION.BOTTOM_LEFT
+          });
+          console.error('Post http status =' + res.status);
+        }})
+    .catch(err => {
+      toast.error("Error new assignment failed.", {
+            position: toast.POSITION.BOTTOM_LEFT
+        });
+        console.error(err);
+    })
+  }    
+
  
   fetchAssignments = () => {
     console.log("Assignment.fetchAssignments");
@@ -74,18 +109,22 @@ class Assignment extends React.Component {
       
       const assignmentSelected = this.state.assignments[this.state.selected];
       return (
-          <div align="left" >
-            <h4>Assignment(s) ready to grade: </h4>
-              <div style={{ height: 450, width: '100%', align:"left"   }}>
-                <DataGrid rows={this.state.assignments} columns={columns} />
-              </div>                
-            <Button component={Link} to={{pathname:'/gradebook',   assignment: assignmentSelected }} 
-                    variant="outlined" color="primary" disabled={this.state.assignments.length===0}  style={{margin: 10}}>
-              Grade
-            </Button>
-            <ToastContainer autoClose={1500} /> 
-          </div>
-      )
+        <div align="left" >
+          <h4>Assignment(s) ready to grade: </h4>
+            <div style={{ height: 450, width: '100%', align:"left"   }}>
+              <DataGrid rows={this.state.assignments} columns={columns} />
+            </div>                
+          <Button component={Link} to={{pathname:'/gradebook',   
+             assignment: assignmentSelected }} 
+            variant="outlined" color="primary"
+            disabled={this.state.assignments.length===0}  style={{margin: 10}}>
+            Grade
+          </Button>
+          <AddAssignment  add={this.newAssignment} />
+          <ToastContainer autoClose={1500} /> 
+        </div>
+    )
+
   }
 }  
 
